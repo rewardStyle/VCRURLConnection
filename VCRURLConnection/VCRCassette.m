@@ -77,21 +77,21 @@
     [self.responseDictionary setObject:array forKey:key];
 }
 
-- (VCRRecording *)recordingForRequestKey:(VCRRequestKey *)key {
+- (VCRRecording *)recordingForRequestKey:(VCRRequestKey *)key consumed:(BOOL)consumed {
     NSMutableArray* array = [self.responseDictionary objectForKey:key];
     
     id obj = array.firstObject;
     
-    if (array.count > 1) {
+    if (array.count > 1 && consumed) {
         [array removeObjectAtIndex:0];
     }
     
     return obj;
 }
 
-- (VCRRecording *)recordingForRequest:(NSURLRequest *)request {
+- (VCRRecording *)recordingForRequest:(NSURLRequest *)request consumed:(BOOL)consumed {
     VCRRequestKey *key = [VCRRequestKey keyForObject:request];
-    return [self recordingForRequestKey:key];
+    return [self recordingForRequestKey:key consumed:consumed];
 }
 
 - (id)JSON {

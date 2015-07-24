@@ -92,8 +92,8 @@
         self.data = [NSJSONSerialization dataWithJSONObject:body options:0 error:nil];
     } else if ([self isText]) {
         self.data = [body dataUsingEncoding:NSUTF8StringEncoding];
-    } else if ([body isKindOfClass:[NSString class]]) {
-        self.data = [[NSData alloc] initWithBase64Encoding:body];
+    } else if ([body isKindOfClass:[NSString class]]) {        
+        self.data = [[NSData alloc] initWithBase64EncodedString:body options:kNilOptions];
     }
 }
 
@@ -101,7 +101,7 @@
     if ([self isText]) {
         return [[NSString alloc] initWithData:self.data encoding:NSUTF8StringEncoding];
     } else {
-        return [self.data base64Encoding];
+        return [self.data base64EncodedStringWithOptions:kNilOptions];
     }
 }
 

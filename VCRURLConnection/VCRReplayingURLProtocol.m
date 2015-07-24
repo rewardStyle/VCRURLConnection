@@ -30,20 +30,20 @@
 @implementation VCRReplayingURLProtocol
 
 + (BOOL)canInitWithRequest:(NSURLRequest *)request {
-    return [VCR isReplaying] && [self recordingForRequest:request] && ([request.URL.scheme isEqualToString:@"https"] || [request.URL.scheme isEqualToString:@"http"]);
+    return [VCR isReplaying] && [self recordingForRequest:request consuming:NO] && ([request.URL.scheme isEqualToString:@"https"] || [request.URL.scheme isEqualToString:@"http"]);
 }
 
 + (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request {
     return request;
 }
 
-+ (VCRRecording *)recordingForRequest:(NSURLRequest *)request {
++ (VCRRecording *)recordingForRequest:(NSURLRequest *)request consuming:(BOOL)consuming {
     VCRCassette *cassette = [[VCRCassetteManager defaultManager] currentCassette];
-    return [cassette recordingForRequest:request];
+    return [cassette recordingForRequest:request consumed:consuming];
 }
 
 - (void)startLoading {
-    VCRRecording *recording = [[self class] recordingForRequest:self.request];
+    VCRRecording *recording = [[self class] recordingForRequest:self.request consuming:YES];
     NSError *error = recording.error;
     if (!error) {
         NSURL *url = [NSURL URLWithString:recording.URI];

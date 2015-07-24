@@ -52,7 +52,7 @@
 - (void)testResponseIsRecorded {
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://www.iana.org/domains/reserved"]];
     [self sendRequest:request];
-    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request];
+    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request consumed:YES];
     XCTAssertEqualObjects(recording.method, request.HTTPMethod, @"");
     XCTAssertEqualObjects(recording.URI, [[request URL] absoluteString], @"");
     XCTAssert(recording.statusCode != 0, @"");
@@ -62,7 +62,7 @@
 - (void)testResponseIsDelegated {
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://www.iana.org/domains/reserved"]];
     VCRTestConnectionController *controller = [self sendRequest:request];
-    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request];
+    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request consumed:YES];
     XCTAssertEqualObjects(controller.data, recording.data, @"Received data should equal recorded data");
     XCTAssertEqual(controller.response.statusCode, recording.statusCode, @"");
 }
@@ -73,7 +73,7 @@
     VCRCassette *cassette = [[VCRCassette alloc] initWithJSON:@[ json ]];
     [[VCRCassetteManager defaultManager] setCurrentCassette:cassette];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:uri]];
-    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request];
+    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request consumed:YES];
     VCRTestConnectionController *controller = [self sendRequest:request];
     XCTAssertEqualObjects(controller.data, recording.data, @"Received data should equal recorded data");
     XCTAssertEqual(controller.response.statusCode, recording.statusCode, @"");
@@ -83,7 +83,7 @@
     NSURL *url = [NSURL URLWithString:@"http://z/foo"]; // non-existent host
     NSURLRequest *request = [NSURLRequest requestWithURL:url];
     [self sendRequest:request];
-    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request];
+    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request consumed:YES];
     XCTAssertNotNil(recording);
     XCTAssertNotNil(recording.error, @"");
 }
@@ -92,7 +92,7 @@
     NSURL *url = [NSURL URLWithString:@"http://z/foo"]; // non-existent host
     NSURLRequest *request = [NSURLRequest requestWithURL:url];
     VCRTestConnectionController *controller = [self sendRequest:request];
-    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request];
+    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request consumed:YES];
     XCTAssertEqualObjects(controller.data, recording.data, @"Received data should equal recorded data");
     XCTAssertEqual(controller.response.statusCode, recording.statusCode, @"");
     XCTAssertNotNil(controller.error, @"");
@@ -104,7 +104,7 @@
     VCRCassette *cassette = [[VCRCassette alloc] initWithJSON:@[ json ]];
     [[VCRCassetteManager defaultManager] setCurrentCassette:cassette];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:uri]];
-    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request];
+    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request consumed:YES];
     VCRTestConnectionController *controller = [self sendRequest:request];
     XCTAssertEqualObjects(controller.data, recording.data, @"Received data should equal recorded data");
     XCTAssertEqual(controller.response.statusCode, recording.statusCode, @"");

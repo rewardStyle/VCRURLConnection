@@ -66,7 +66,7 @@
     NSURLRequest *request = [NSURLRequest requestWithURL:url];
     VCRRecording *expectedRecording = [[VCRRecording alloc] initWithJSON:self.recording1];
     VCRCassette *cassette = [[VCRCassette alloc] initWithJSON:self.recordings];
-    VCRRecording *actualRecording = [cassette recordingForRequest:request];
+    VCRRecording *actualRecording = [cassette recordingForRequest:request consumed:YES];
     XCTAssertEqualObjects(actualRecording, expectedRecording, @"Should get expected recording");
 }
 
@@ -101,11 +101,11 @@
     
     VCRCassette *cassette = self.cassette;
     [cassette addRecording:recording];
-    XCTAssertEqualObjects([cassette recordingForRequest:request], recording, @"");
+    XCTAssertEqualObjects([cassette recordingForRequest:request consumed:NO], recording, @"");
     
     // can retrieve with equivalent mutable request
     NSMutableURLRequest *request1 = [NSMutableURLRequest requestWithURL:url];
-    XCTAssertEqualObjects([cassette recordingForRequest:request1], recording, @"");
+    XCTAssertEqualObjects([cassette recordingForRequest:request1 consumed:NO], recording, @"");
 }
 
 - (void)testKeyOrderingForJson {

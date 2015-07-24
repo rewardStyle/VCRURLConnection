@@ -64,7 +64,7 @@
     [task resume];
     [self waitForExpectationsWithTimeout:60 handler:nil];
     
-    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request];
+    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request consumed:YES];
     XCTAssertEqual(recording.statusCode, httpResponse.statusCode, @"");
     XCTAssertEqualObjects(recording.data, receivedData, @"");
     XCTAssertEqualObjects(recording.method, request.HTTPMethod, @"");
@@ -94,7 +94,7 @@
     VCRCassette *cassette = [[VCRCassette alloc] initWithJSON:@[ json ]];
     [[VCRCassetteManager defaultManager] setCurrentCassette:cassette];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:uri]];
-    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request];
+    VCRRecording *recording = [[[VCRCassetteManager defaultManager] currentCassette] recordingForRequest:request consumed:YES];
     
     __block BOOL completed = NO;
     __block NSData *receivedData;
