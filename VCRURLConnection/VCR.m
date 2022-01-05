@@ -54,7 +54,7 @@ static NSArray<NSString *> *_textContentTypes;
 }
 
 + (void)initialize {
-    _textContentTypes = @[ @"application/x-www-form-urlencoded" ];
+    _textContentTypes = @[ @"application/x-www-form-urlencoded", @"application/json" ];
 }
 
 + (void)loadCassetteWithContentsOfURL:(NSURL *)url {
