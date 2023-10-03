@@ -21,13 +21,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "VCR_NSURLConnectionTests.h"
+#import "VCRNSURLConnectionTests.h"
 #import "XCTestCase+SRTAdditions.h"
-#import "VCRCassetteManager.h"
-#import "VCRCassette.h"
-#import "VCRRequestKey.h"
-#import "VCRRecording.h"
-#import "VCR.h"
+
+@import VCRURLConnection;
 
 @interface VCRTestConnectionController : NSObject<NSURLConnectionDelegate>
 - (void)sendRequest:(NSURLRequest *)request completion:(void (^)())completion;

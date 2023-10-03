@@ -1,7 +1,7 @@
 //
-// VCRResponseViewController.m
+// XCTestCase+VCR.h
 //
-// Copyright (c) 2012 Dustin Barker
+// Copyright (c) 2013 Dustin Barker
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "VCRRecordingViewController.h"
+#import <XCTest/XCTest.h>
+@import VCRURLConnection;
 
-@interface VCRRecordingViewController ()
+@protocol VCRTestDelegate <NSObject>
 
-@property (nonatomic, strong) IBOutlet UITextView *textView;
-
+@optional
+- (NSData *)data;
+- (NSHTTPURLResponse *)response;
 @end
 
-@implementation VCRRecordingViewController
+@interface XCTestCase (VCR)
 
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    NSString *html = self.recording.body;
-    self.textView.text = html;
-}
+- (void)recordRequest:(NSURLRequest *)request
+         requestBlock:(void(^)())requestBlock
+       predicateBlock:(BOOL(^)())predicateBlock
+           completion:(void(^)(VCRRecording *recording))completion;
+
+- (void)testRecording:(VCRRecording *)recording forRequest:(NSURLRequest *)request;
+
+- (void)testDelegate:(id<VCRTestDelegate>)delegate forRecording:(VCRRecording *)recording;
+
+- (void)replayJSON:(id)json
+      requestBlock:(void(^)(NSURLRequest *request))requestBlock
+    predicateBlock:(BOOL(^)())predicateBlock
+        completion:(void(^)(VCRRecording *))completion;
 
 @end

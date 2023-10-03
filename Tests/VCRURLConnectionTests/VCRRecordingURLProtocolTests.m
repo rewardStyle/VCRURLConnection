@@ -6,9 +6,8 @@
 //
 //
 
-#import <XCTest/XCTest.h>
-#import "VCRRecordingURLProtocol.h"
-#import "VCR.h"
+@import XCTest;
+@import VCRURLConnection;
 
 @interface VCRRecordingURLProtocolTests : XCTestCase
 
