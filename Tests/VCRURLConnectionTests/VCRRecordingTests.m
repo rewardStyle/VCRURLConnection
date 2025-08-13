@@ -71,7 +71,7 @@
     json[@"body"] = @{ @"foo" : @"bar", @"baz" : @"qux" };
     VCRRecording *recording = [[VCRRecording alloc] initWithJSON:json];
     
-    NSString *expected = @"{\"foo\":\"bar\",\"baz\":\"qux\"}";
+    NSString *expected = @"{\"baz\":\"qux\",\"foo\":\"bar\"}";
     XCTAssertEqualObjects(expected, recording.body, @"");
 }
 
@@ -111,7 +111,7 @@
 
 - (void)testBodyWithImageData {
     VCRRecording *recording = [[VCRRecording alloc] init];
-    NSString *imagePath = [[NSBundle bundleForClass:[self class]] pathForResource:@"test" ofType:@"png"];
+    NSString *imagePath = [SWIFTPM_MODULE_BUNDLE pathForResource:@"test" ofType:@"png"];
     NSURL *imageURL = [NSURL fileURLWithPath:imagePath];
     recording.headerFields = @{ @"Content-Type": @"image/png" };
     recording.data = [NSData dataWithContentsOfURL:imageURL];

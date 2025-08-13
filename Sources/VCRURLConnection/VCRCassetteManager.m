@@ -24,9 +24,10 @@
 #import "VCRCassetteManager.h"
 #import "VCRCassette.h"
 
-@interface VCRCassetteManager ()
-
-@property (nonatomic, strong) VCRCassette *cassette;
+@interface VCRCassetteManager () {
+    VCRCassette *_cassette;
+    dispatch_queue_t _cassetteQueue;
+}
 
 @end
 
@@ -40,20 +41,44 @@
     dispatch_once(&oncePredicate, ^{
         _defaultManager = [[self alloc] init];
     });
-    
+
     return _defaultManager;
 }
 
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _cassetteQueue = dispatch_queue_create("com.vcrcassette.manager.cassetteQueue", DISPATCH_QUEUE_CONCURRENT);
+    }
+    return self;
+}
+
+// Thread-safe setter for cassette
+- (void)setCassette:(VCRCassette *)cassette {
+    dispatch_barrier_async(_cassetteQueue, ^{
+        _cassette = cassette;
+    });
+}
+
+// Thread-safe getter for cassette
+- (VCRCassette *)cassette {
+    __block VCRCassette *cassette;
+    dispatch_sync(_cassetteQueue, ^{
+        cassette = _cassette;
+    });
+    return cassette;
+}
+
 - (void)setCurrentCassetteURL:(NSURL *)url {
-    self.cassette = nil;
+    [self setCassette:nil];
     _currentCassetteURL = url;
 }
 
 - (VCRCassette *)currentCassette {
-    VCRCassette *cassette = self.cassette;
-    
+    VCRCassette *cassette = [self cassette];
+
     NSURL *url = self.currentCassetteURL;
-    
+
     if (cassette) {
         // do nothing
     } else if ([[NSFileManager defaultManager] fileExistsAtPath:[url path]]) {
@@ -62,18 +87,19 @@
     } else {
         cassette = [VCRCassette cassette];
     }
-    
-    self.cassette = cassette;
-    
+
+    [self setCassette:cassette];
+
     return cassette;
 }
 
 - (void)setCurrentCassette:(VCRCassette *)cassette {
-    self.cassette = cassette;
+    [self setCassette:cassette];
 }
 
 - (void)save:(NSString *)path {
-    NSData *data = [self.cassette data];
+    VCRCassette *cassette = [self cassette];
+    NSData *data = [cassette data];
     [data writeToFile:path atomically:YES];
 }
 

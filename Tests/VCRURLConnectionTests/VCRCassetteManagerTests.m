@@ -1,7 +1,7 @@
 //
-// XCTestCase+VCR.h
+// VCRCassetteManagerTests.m
 //
-// Copyright (c) 2013 Dustin Barker
+// Copyright (c) 2012 Dustin Barker
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,30 +21,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import <XCTest/XCTest.h>
-#import "VCRRecording.h"
+#import "VCRCassetteManagerTests.h"
+#import "VCRCassetteManager.h"
+#import "VCRCassette.h"
 
-@protocol VCRTestDelegate <NSObject>
 
-@optional
-- (NSData *)data;
-- (NSHTTPURLResponse *)response;
+@interface VCRCassetteManagerTests ()
+@property (nonatomic, strong) VCRCassetteManager *manager;
 @end
 
-@interface XCTestCase (VCR)
 
-- (void)recordRequest:(NSURLRequest *)request
-         requestBlock:(void(^)())requestBlock
-       predicateBlock:(BOOL(^)())predicateBlock
-           completion:(void(^)(VCRRecording *recording))completion;
+@implementation VCRCassetteManagerTests
 
-- (void)testRecording:(VCRRecording *)recording forRequest:(NSURLRequest *)request;
+- (void)setUp {
+    [super setUp];
+    self.manager = [[VCRCassetteManager alloc] init];
+}
 
-- (void)testDelegate:(id<VCRTestDelegate>)delegate forRecording:(VCRRecording *)recording;
+- (void)tearDown {
+    self.manager = nil;
+    [super tearDown];
+}
 
-- (void)replayJSON:(id)json
-      requestBlock:(void(^)(NSURLRequest *request))requestBlock
-    predicateBlock:(BOOL(^)())predicateBlock
-        completion:(void(^)(VCRRecording *))completion;
+- (void)testSetCurrentCassetteWithURL {
+    NSString *path = [SWIFTPM_MODULE_BUNDLE pathForResource:@"cassette-1" ofType:@"json"];
+    NSURL *url = [NSURL fileURLWithPath:path];
+    NSData *data = [NSData dataWithContentsOfURL:url];
+    XCTAssertTrue(data != nil, @"Could not load cassette %@", url);
+    VCRCassette *expectedCassette = [[VCRCassette alloc] initWithData:data];
+    [self.manager setCurrentCassetteURL:url];
+    
+    XCTAssertEqualObjects(self.manager.currentCassette, expectedCassette, @"Should set cassette with URL");
+}
 
 @end
