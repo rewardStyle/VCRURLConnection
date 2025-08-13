@@ -24,10 +24,11 @@
 #import "VCRCassetteManager.h"
 #import "VCRCassette.h"
 
-@interface VCRCassetteManager () {
-    VCRCassette *_cassette;
-    dispatch_queue_t _cassetteQueue;
-}
+@interface VCRCassetteManager ()
+
+@property (nonatomic, strong) VCRCassette *cassette;
+// The dispatch queue must be assign, not strong, as dispatch_queue_t is not an Objective-C object.
+@property (nonatomic, assign) dispatch_queue_t cassetteQueue;
 
 @end
 
