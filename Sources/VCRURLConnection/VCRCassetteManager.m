@@ -29,8 +29,6 @@
     dispatch_queue_t _cassetteQueue;
 }
 
-@property (nonatomic, strong) NSURL *currentCassetteURL;
-
 @end
 
 @implementation VCRCassetteManager
