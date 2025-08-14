@@ -27,5 +27,6 @@
 
 @property (nonatomic, strong) NSMutableDictionary *responseDictionary;
 @property (nonatomic, strong) NSMutableArray *regexRecordings;
+@property (nonatomic, strong) dispatch_queue_t synchronizationQueue;
 
 @end
