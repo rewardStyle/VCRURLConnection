@@ -41,6 +41,7 @@
     if ((self = [super init])) {
         self.responseDictionary = [NSMutableDictionary dictionary];
         self.regexRecordings = [NSMutableArray array];
+        self.synchronizationQueue = dispatch_queue_create("com.vcr.cassette.sync", DISPATCH_QUEUE_SERIAL);
     }
     return self;
 }
@@ -61,45 +62,52 @@
     id json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
     NSAssert([error code] == 0, @"Attempted to initialize VCRCassette with invalid JSON");
     return [self initWithJSON:json];
-    
+
 }
 
 - (void)addRecording:(VCRRecording *)recording {
-    if (recording.URI) {
-        VCRRequestKey *key = [VCRRequestKey keyForObject:recording];
-        NSMutableArray * recordings = [self.responseDictionary objectForKey:key];
+    dispatch_async(self.synchronizationQueue, ^{
+        if (recording.URI) {
+            VCRRequestKey *key = [VCRRequestKey keyForObject:recording];
+            NSMutableArray * recordings = [self.responseDictionary objectForKey:key];
 
-        if (recordings == NULL) {
-            recordings = [[NSMutableArray alloc] init];
-            [self.responseDictionary setObject:recordings forKey:key];
+            if (recordings == NULL) {
+                recordings = [[NSMutableArray alloc] init];
+                [self.responseDictionary setObject:recordings forKey:key];
+            }
+
+            [recordings addObject:recording];
+        } else {
+            [self.regexRecordings addObject:recording];
         }
-
-        [recordings addObject:recording];
-    } else {
-        [self.regexRecordings addObject:recording];
-    }
+    });
 }
 
 - (VCRRecording *)recordingForRequestKey:(VCRRequestKey *)key replaying:(BOOL)replaying {
-    __block VCRRecording *recording;
-    NSMutableArray *recordings = [self.responseDictionary objectForKey:key];
+    __block VCRRecording *recording = nil;
 
-    if (recordings != NULL && recordings.count > 0) {
-        recording = [recordings objectAtIndex:0];
+    dispatch_sync(self.synchronizationQueue, ^{
+        NSMutableArray *recordings = [self.responseDictionary objectForKey:key];
 
-        if (recordings.count > 1 && replaying) {
-            [recordings removeObjectAtIndex:0];
-        }
-    }
+        if (recordings != NULL && recordings.count > 0) {
+            recording = [recordings objectAtIndex:0];
 
-    if (!recording) {
-        [self.regexRecordings enumerateObjectsUsingBlock:^(VCRRecording *obj, NSUInteger idx, BOOL *stop) {
-            if ([obj.method isEqualToString:key.method] && [obj.URIRegex numberOfMatchesInString:key.URI options:0 range:NSMakeRange(0, key.URI.length)] > 0) {
-                recording = obj;
-                *stop = YES;
+            if (recordings.count > 1 && replaying) {
+                [recordings removeObjectAtIndex:0];
             }
-        }];
-    }
+        }
+
+        if (!recording) {
+            // Create a copy of the array to safely enumerate
+            NSArray *regexRecordingsCopy = [self.regexRecordings copy];
+            for (VCRRecording *obj in regexRecordingsCopy) {
+                if ([obj.method isEqualToString:key.method] && [obj.URIRegex numberOfMatchesInString:key.URI options:0 range:NSMakeRange(0, key.URI.length)] > 0) {
+                    recording = obj;
+                    break;
+                }
+            }
+        }
+    });
 
     return recording;
 }
@@ -118,16 +126,25 @@
 }
 
 - (id)JSON {
-    NSMutableArray *recordings = [NSMutableArray array];
-    for (NSArray *requestRecordings in self.responseDictionary.allValues) {
-        for (VCRRecording *recording in requestRecordings) {
+    __block NSMutableArray *recordings = nil;
+
+    dispatch_sync(self.synchronizationQueue, ^{
+        recordings = [NSMutableArray array];
+
+        // Create copies to safely iterate
+        NSDictionary *responseDictionaryCopy = [self.responseDictionary copy];
+        for (NSArray *requestRecordings in responseDictionaryCopy.allValues) {
+            for (VCRRecording *recording in requestRecordings) {
+                [recordings addObject:[recording JSON]];
+            }
+        }
+
+        NSArray *regexRecordingsCopy = [self.regexRecordings copy];
+        for (VCRRecording *recording in regexRecordingsCopy) {
             [recordings addObject:[recording JSON]];
         }
-    }
-    
-    for (VCRRecording *recording in self.regexRecordings) {
-        [recordings addObject:[recording JSON]];
-    }
+    });
+
     return recordings;
 }
 
@@ -143,15 +160,34 @@
 }
 
 - (BOOL)isEqual:(VCRCassette *)cassette {
-    return [self.responseDictionary isEqual:cassette.responseDictionary];
+    __block BOOL result = NO;
+
+    dispatch_sync(self.synchronizationQueue, ^{
+        dispatch_sync(cassette.synchronizationQueue, ^{
+            result = [self.responseDictionary isEqual:cassette.responseDictionary];
+        });
+    });
+
+    return result;
 }
 
 - (NSUInteger)hash {
-    return [self.responseDictionary hash];
+    __block NSUInteger result = 0;
+
+    dispatch_sync(self.synchronizationQueue, ^{
+        result = [self.responseDictionary hash];
+    });
+
+    return result;
 }
 
 - (NSArray *)allKeys {
-    return [self.responseDictionary allKeys];
-}
+    __block NSArray *keys = nil;
 
+    dispatch_sync(self.synchronizationQueue, ^{
+        keys = [self.responseDictionary allKeys];
+    });
+
+    return keys;
+}
 @end
